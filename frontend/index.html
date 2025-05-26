@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Music Recommender</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      padding: 20px;
+    }
+    input, button {
+      margin: 8px 0;
+      padding: 8px;
+      width: 300px;
+    }
+    ul {
+      list-style-type: none;
+      padding-left: 0;
+    }
+    li {
+      margin-bottom: 10px;
+    }
+  </style>
+</head>
+<body>
+  <h1>🎵 Music Recommendation System</h1>
+
+<form id="recommendForm">
+  <input type="text" id="song" placeholder="Enter song name" required><br>
+  <input type="text" id="artist" placeholder="Enter artist name" required><br>
+  <input type="number" id="num" placeholder="Number of suggestions (e.g., 5)" min="1" max="20" value="5" required><br>
+  <button type="submit">Get Recommendations</button>
+</form>
+
+
+  <h2>Recommended Songs:</h2>
+  <ul id="results"></ul>
+
+  <script>
+    const form = document.getElementById('recommendForm');
+    const results = document.getElementById('results');
+
+    form.addEventListener('submit', async function (e) {
+      e.preventDefault();
+
+      const song = document.getElementById('song').value;
+      const artist = document.getElementById('artist').value;
+      const num = parseInt(document.getElementById('num').value); 
+
+body: JSON.stringify({
+  song_name: song,
+  artist_name: artist,
+  n_recommendations: num 
+})
+
+
+      results.innerHTML = "<li>Loading...</li>"; // Show loading indicator
+
+      try {
+        const response = await fetch("http://127.0.0.1:8000/recommend", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({
+            song_name: song,
+            artist_name: artist,
+            n_recommendations: num // Add n_recommendations as per your FastAPI model
+          })
+        });
+
+        // Check for HTTP errors (e.g., 404 from your FastAPI's HTTPException)
+        if (!response.ok) {
+          const errorData = await response.json(); // Try to parse error details
+          throw new Error(errorData.detail || `HTTP error! status: ${response.status}`);
+        }
+
+        const data = await response.json(); // 'data' will now be the array of songs
+
+        results.innerHTML = ""; // Clear previous results
+
+        // Check if 'data' is an array and has elements
+        if (Array.isArray(data) && data.length > 0) { // CORRECTED LINE
+          data.forEach(track => { // CORRECTED LINE: iterate directly over 'data'
+            const li = document.createElement("li");
+            li.textContent = `${track.track_name} — ${track.artists}`;
+            results.appendChild(li);
+          });
+        } else {
+          results.innerHTML = "<li>No recommendations found.</li>";
+        }
+      } catch (err) {
+        results.innerHTML = `<li>Error: ${err.message}</li>`;
+        console.error("Fetch error:", err); // Log error for debugging
+      }
+    });
+  </script>
+</body>
+</html>
