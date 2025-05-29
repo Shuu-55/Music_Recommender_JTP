@@ -1,19 +1,37 @@
-import { useState } from 'react'
-import './App.css'; // Import your CSS styles
+import { useState, useEffect } from 'react';
+import { getSpotifyToken, searchTrack } from './utils/spotify';
+import './App.css';
 
 function App() {
   const [formData, setFormData] = useState({
     song: '',
     artist: '',
-    num: 5
+    num: ''
   });
   const [results, setResults] = useState([]);
-  const [status, setStatus] = useState('idle'); // 'idle' | 'loading' | 'error'
+  const [status, setStatus] = useState('idle');
   const [error, setError] = useState(null);
-  const [isDarkMode, setIsDarkMode] = useState(false);
+  const [spotifyToken, setSpotifyToken] = useState(null);
+  const [hasSearched, setHasSearched] = useState(false); // Track if a search has been attempted
+
+  useEffect(() => {
+    const fetchToken = async () => {
+      const token = await getSpotifyToken();
+      setSpotifyToken(token);
+    };
+    fetchToken();
+  }, []);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setHasSearched(true); // Set to true when search is attempted
+    
+    if (!formData.song.trim() || !formData.artist.trim()) {
+      setStatus('error');
+      setError('Both song name and artist name are required');
+      return;
+    }
+
     setStatus('loading');
 
     try {
@@ -29,13 +47,30 @@ function App() {
         })
       });
 
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.detail || `HTTP error! status: ${response.status}`);
+      const data = await response.json();
+      
+      if (spotifyToken) {
+        const enhancedData = await Promise.all(
+          data.map(async (track) => {
+            const spotifyData = await searchTrack(
+              spotifyToken, 
+              track.track_name, 
+              track.artists
+            );
+            return {
+              ...track,
+              image: spotifyData?.album?.images[0]?.url || null,
+              album: spotifyData?.album?.name || null,
+              preview_url: spotifyData?.preview_url || null,
+              spotify_url: spotifyData?.external_urls?.spotify || null
+            };
+          })
+        );
+        setResults(enhancedData);
+      } else {
+        setResults(data);
       }
 
-      const data = await response.json();
-      setResults(data);
       setStatus('idle');
       setError(null);
     } catch (err) {
@@ -53,25 +88,16 @@ function App() {
     }));
   };
 
-  const toggleDarkMode = () => {
-    setIsDarkMode(!isDarkMode);
-  };
-
   return (
-    <div className={`app ${isDarkMode ? 'dark-theme' : 'light-theme'}`}>
+    <div className="app">
       <div className="container">
-        {/* Header */}
         <div className="header">
           <div className="title-section">
             <span className="music-icon">🎵</span>
             <h1>Music Discovery</h1>
           </div>
-          <button className="theme-toggle" onClick={toggleDarkMode}>
-            {isDarkMode ? '☀️' : '🌙'}
-          </button>
         </div>
 
-        {/* Input Form */}
         <div className="form-card">
           <div className="input-group">
             <label htmlFor="song">Song Name</label>
@@ -127,49 +153,56 @@ function App() {
           </button>
         </div>
 
-        {/* Last Search Card */}
-        {formData.song && formData.artist && (
-          <div className="last-search-card">
-            <h3>Last Search:</h3>
-            <p>"{formData.song}" by {formData.artist}</p>
-          </div>
-        )}
-
-        {/* Results Section */}
-        {(results.length > 0 || status === 'error' || (status === 'idle' && results.length === 0 && formData.song)) && (
-          <div className="results-section">
-            <h2>
-              {status === 'error' ? 'Error' : 'Recommended Songs'}
-            </h2>
-            
-            {status === 'error' && (
-              <div className="message-card error">
-                <span className="icon">⚠️</span>
-                <p>{error}</p>
-              </div>
-            )}
-            
-            {status === 'idle' && results.length === 0 && formData.song && (
-              <div className="message-card empty">
-                <span className="icon">🔍</span>
-                <p>No recommendations found. Try a different song!</p>
-              </div>
-            )}
-            
+        <div className="results-section">
+          <h2>
+            {status === 'error' ? 'Error' : 'Recommended Songs'}
+          </h2>
+          
+          {status === 'error' && (
+            <div className="message-card error">
+              <span className="icon">⚠️</span>
+              <p>{error}</p>
+            </div>
+          )}
+          
+          {status === 'idle' && hasSearched && results.length === 0 && (
+            <div className="message-card empty">
+              <span className="icon">🔍</span>
+              <p>No recommendations found. Try a different song!</p>
+            </div>
+          )}
+          
+          <div className="tracks-container">
             {results.map((track, index) => (
-  <div key={index} className="track-card">
-    <div className="track-number">{index + 1}</div>
-    <div className="track-info">
-      <h3>{track.track_name}</h3>
-      <p>{track.artists}</p>
-    </div>
-  </div>
-))}
+              <div key={index} className="track-card">
+                <div className="track-number">{index + 1}</div>
+                {track.image && (
+                  <div className="track-image">
+                    <img src={track.image} alt={track.track_name} />
+                  </div>
+                )}
+                <div className="track-info">
+                  <h3>{track.track_name}</h3>
+                  <p>{track.artists}</p>
+                  {track.album && <p className="album-name">Album: {track.album}</p>}
+                  {track.spotify_url && (
+                    <a 
+                      href={track.spotify_url} 
+                      target="_blank" 
+                      rel="noopener noreferrer" 
+                      className="spotify-link"
+                    >
+                      Open in Spotify
+                    </a>
+                  )}
+                </div>
+              </div>
+            ))}
           </div>
-        )}
+        </div>
       </div>
     </div>
   );
 }
 
-export default App
+export default App;

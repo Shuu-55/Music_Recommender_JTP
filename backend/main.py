@@ -32,7 +32,7 @@ except Exception as e:
 class SongRequest(BaseModel):
     song_name: str
     artist_name: str
-    n_recommendations: int = 5  # 5 recomendations only
+    n_recommendations: int = 5  # Deafult value is 5
 
 class SongResponse(BaseModel):
     track_name: str
@@ -42,6 +42,13 @@ class SongResponse(BaseModel):
 @app.post("/recommend", response_model=list[SongResponse])
 async def recommend_songs(request: SongRequest):
     try:
+        # Validate input
+        if not request.song_name.strip() or not request.artist_name.strip():
+            raise HTTPException(
+                status_code=400, 
+                detail="Both song name and artist name are required"
+            )
+
         # input
         song_lower = request.song_name.lower().strip()
         artist_lower = request.artist_name.lower().strip()

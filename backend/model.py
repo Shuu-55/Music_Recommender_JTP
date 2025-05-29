@@ -76,7 +76,7 @@ if df is not None:
                 previous_idx = previous_matches.index[0]
                 previous_features = X_scaled[previous_idx]
                 # Simple average blending (can be adjusted to weighted average)
-                blended_features = 0.7 * current_features + 0.3 * previous_features
+                blended_features = (current_features + previous_features)/2
 
 
         # Get recommendations with blended features
