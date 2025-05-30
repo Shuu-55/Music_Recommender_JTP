@@ -24,11 +24,23 @@ function App() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setHasSearched(true); // Set to true when search is attempted
-    
+    setHasSearched(true);
+
+    // Clear previous results at the start of new search
+    setResults([]);
+
     if (!formData.song.trim() || !formData.artist.trim()) {
       setStatus('error');
       setError('Both song name and artist name are required');
+      return;
+    }
+
+    // Validate number of recommendations
+    const numRecommendations = parseInt(formData.num, 10);
+    if (!formData.num.trim() || isNaN(numRecommendations) || 
+        numRecommendations < 1 || numRecommendations > 10) {
+      setStatus('error');
+      setError('Number of recommendations must be between 1 and 10');
       return;
     }
 
@@ -43,18 +55,24 @@ function App() {
         body: JSON.stringify({
           song_name: formData.song,
           artist_name: formData.artist,
-          n_recommendations: formData.num
+          n_recommendations: numRecommendations
         })
       });
 
       const data = await response.json();
-      
+
+      if (!Array.isArray(data)) {
+        setStatus('error');
+        setError(data.detail || 'Unexpected response from server');
+        return;
+      }
+
       if (spotifyToken) {
         const enhancedData = await Promise.all(
           data.map(async (track) => {
             const spotifyData = await searchTrack(
-              spotifyToken, 
-              track.track_name, 
+              spotifyToken,
+              track.track_name,
               track.artists
             );
             return {
