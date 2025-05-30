@@ -32,7 +32,7 @@ except Exception as e:
 class SongRequest(BaseModel):
     song_name: str
     artist_name: str
-    n_recommendations: int = 5  # Deafult value is 5
+    n_recommendations: int = 5  # Default value is 5
 
 class SongResponse(BaseModel):
     track_name: str
