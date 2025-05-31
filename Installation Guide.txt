@@ -1,4 +1,4 @@
-				Music Recommender – Installation Guide
+				Music Recommender â€“ Installation Guide
 
 
 Prerequisites
@@ -19,7 +19,7 @@ Method 1: Docker Installation (Recommended)
 3. Clone and run:
 	o git clone https://github.com/Shuu-55/Music_Recommender_JTP.git
 	o cd Music_Recommender_JTP
-	o docker compose up
+	o docker compose up --build (or docker compose up)
 4. Access the application at:
 	o Frontend: http://localhost:80 
 	o Backend API: http://localhost:8000 
@@ -40,7 +40,7 @@ Method 2: Manual Installation
 	o uvicorn main:app --reload
 6. Setup Frontend.
 	o cd frontend
-	o create .env file (add the spotify credentials)
+	o create .env file (add the spotify credentials and the BASE_URL)
 7. Install dependencies.
 	o npm i (or npm install)
 8. Start Frontend.
@@ -53,13 +53,13 @@ Common Issues
 
 1. Port Conflicts
 	o Close other applications using ports 80, 8000, or 5173
-	o Or change ports in docker-compose.yaml
+	o Or change ports inÂ docker-compose.yaml
 2. Backend Connection
 	o Verify backend is running
 	o Check .env configuration
 	o Swap the .env configuration with the localhost configuration in the App.jsx if running locally without Docker.
 3. Docker Issues
 	o Restart Docker Desktop
-	o Run docker compose down then docker compose up
+	o RunÂ docker compose downÂ thenÂ docker compose up
 4. API Issues
-	o Spotify’s API allows upto 1000 requests per day.
+	o Spotifyâ€™s API allows upto 1000 requests per day.
