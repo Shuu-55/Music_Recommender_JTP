@@ -24,7 +24,7 @@ A modern full-stack application that provides personalized music recommendations
 ### Using Docker (Recommended)
 
 ```bash
-git clone <repository-url>
+git clone https://github.com/Shuu-55/Music_Recommender_JTP.git
 cd Music_Recommender_JTP
 docker compose up
 ```
