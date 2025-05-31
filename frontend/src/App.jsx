@@ -67,6 +67,7 @@ function App() {
     console.log("API Base URL:", API_BASE_URL);
     try {
       const response = await fetch(`${API_BASE_URL}/recommend`, {
+      //const response = await fetch(`http://127.0.0.1:8000/recommend`, {  this is for local usage
         method: "POST",
         headers: {
           "Content-Type": "application/json"
