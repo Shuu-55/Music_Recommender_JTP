@@ -23,4 +23,3 @@ A modern full-stack application that provides personalized music recommendations
 - Save time finding similar songs
 - Expand your music library
 - Find artists you might have missed
-- Quick access to song previews
