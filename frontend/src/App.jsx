@@ -52,8 +52,10 @@ function App() {
       return;
     }
 
-    //ensures the song and artist are not just numbers
-    if (!song || !artist || /^\d+$/.test(song) || /^\d+$/.test(artist)) {
+    // ensures the song and artist are not just numbers
+    if (!formData.song || !formData.artist || 
+        /^\d+$/.test(formData.song) || 
+        /^\d+$/.test(formData.artist)) {
       setStatus('error');
       setError('Song and artist names must be text, not numbers');
       return;
